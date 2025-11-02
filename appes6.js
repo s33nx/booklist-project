@@ -19,8 +19,8 @@ class UI{
     `
     list.appendChild(row); 
     }
-    showAlert(message, className){
-          //create div 
+    showMessage(message, className){
+          //create div
     const div = document.createElement('div');
     //add classes
     div.className = `alert ${className}`;
@@ -50,6 +50,49 @@ class UI{
     }
 }
 
+//Local Storage
+class Store {
+    static getBooks(){
+        let books;
+        if(localStorage.getItem('books') === null){
+            books = [];
+        }else{
+            books = JSON.parse(localStorage.getItem('books'));
+        }
+        return books;
+    }
+    static displayBooks(){
+        const books = Store.getBooks();
+        books.forEach(function(book){
+            const ui = new UI;
+
+            //Add book to ui
+            ui.addBookToList(book);
+        })
+    }
+    static addBook(book){
+        const books = Store.getBooks();
+        books.push(book);
+        localStorage.setItem('books', JSON.stringify(books));
+
+    }
+    static removeBook(isbn){
+         const books = Store.getBooks();
+         books.forEach(function(book, index){
+            const ui = new UI;
+            if(book.isbn === isbn ){
+                books.splice(index, 1);
+            }
+            localStorage.setItem('books', JSON.stringify(books));
+        });
+        
+    }
+}
+
+// DOM load event
+document.addEventListener('DOMContentLoaded',  function(){
+    Store.displayBooks();
+})
 //Event listener for booklist
 document.getElementById('book-form').addEventListener('submit', function(e){
     //get form values
@@ -66,8 +109,10 @@ document.getElementById('book-form').addEventListener('submit', function(e){
     if (title === '' || author === '' || isbn === ''){
         ui.showMessage('Please fill in all the spaces', 'error')
     }else{
-     //Add book to list
-    ui.addbooktolist(book);
+    //Add book to list
+    ui.addBookToList(book);
+    // Add to local storage
+    Store.addBook(book);
     // show success 
     ui.showMessage('Book Successfully Added', 'success')
   // clear fields
@@ -85,6 +130,9 @@ document.getElementById('book-list').addEventListener('click', function(e){
     const ui = new UI()
     //delete book
     ui.deleteBook(e.target);
+
+    // remove from local storage
+    Store.removeBook(e.target.parentElement.previousElementSibling.textContent);
 
     //show delete message
     ui.showMessage('Book Removed successfully', 'success')
